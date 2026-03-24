@@ -42,12 +42,16 @@ def _quat_multiply(q1: np.ndarray, q2: np.ndarray) -> np.ndarray:
     """Hamilton product of two wxyz quaternions."""
     w1, x1, y1, z1 = q1[0], q1[1], q1[2], q1[3]
     w2, x2, y2, z2 = q2[0], q2[1], q2[2], q2[3]
-    return np.array([
-        w1*w2 - x1*x2 - y1*y2 - z1*z2,
-        w1*x2 + x1*w2 + y1*z2 - z1*y2,
-        w1*y2 - x1*z2 + y1*w2 + z1*x2,
-        w1*z2 + x1*y2 - y1*x2 + z1*w2,
-    ], dtype=q1.dtype)
+    return np.array(
+        [
+            w1 * w2 - x1 * x2 - y1 * y2 - z1 * z2,
+            w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2,
+            w1 * y2 - x1 * z2 + y1 * w2 + z1 * x2,
+            w1 * z2 + x1 * y2 - y1 * x2 + z1 * w2,
+        ],
+        dtype=q1.dtype,
+    )
+
 
 # ── zarr key → obs mapping ───────────────────────────────────────────
 
@@ -114,8 +118,11 @@ def load_checkpoint(
         action_std=np.asarray(norm_data["action_std"], dtype=np.float32),
     )
 
-    d_model = int(ckpt.get("d_model", 128))
-    depth = int(ckpt.get("depth", 2))
+    d_model = int(ckpt.get("d_model", 256))
+    depth = int(ckpt.get("depth", 3))
+    dropout = float(ckpt.get("dropout", 0.1))
+    activation = str(ckpt.get("activation", "gelu"))
+    use_layer_norm = bool(ckpt.get("use_layer_norm", False))
     policy_type = str(ckpt.get("policy_type", "obstacle"))
     model = build_policy(
         policy_type,
@@ -124,6 +131,9 @@ def load_checkpoint(
         chunk_size=chunk_size,
         d_model=d_model,
         depth=depth,
+        dropout=dropout,
+        activation=activation,
+        use_layer_norm=use_layer_norm,
     )
     model.load_state_dict(ckpt["model_state_dict"])
     model.to(device)

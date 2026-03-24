@@ -28,9 +28,9 @@ from hw3.model import BasePolicy, build_policy
 from torch.utils.data import DataLoader, random_split
 
 # TODO: Choose your own hyperparameters!
-EPOCHS = ... 
-BATCH_SIZE = ...
-LR = ...
+EPOCHS = 100
+BATCH_SIZE = 128
+LR = 3e-4
 VAL_SPLIT = 0.1
 
 
@@ -46,8 +46,15 @@ def train_one_epoch(
 
     for batch in loader:
         states, action_chunks = batch
-        # TODO: Implement the training step for one batch here.
-        # This mostly: Get states and action_chunks onto the correct device, compute the loss, and step the optimizer.
+        states = states.to(device)
+        action_chunks = action_chunks.to(device)
+        loss = model.compute_loss(states, action_chunks)
+        optimizer.zero_grad()
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+        optimizer.step()
+        total_loss += loss.item()
+        n_batches += 1
 
     return total_loss / max(n_batches, 1)
 
@@ -64,7 +71,11 @@ def evaluate(
 
     for batch in loader:
         states, action_chunks = batch
-        # TODO: Implement the evaluation step for one batch here.
+        states = states.to(device)
+        action_chunks = action_chunks.to(device)
+        loss = model.compute_loss(states, action_chunks)
+        total_loss += loss.item()
+        n_batches += 1
 
     return total_loss / max(n_batches, 1)
 
@@ -74,6 +85,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Train action-chunking policy.")
     parser.add_argument(
         "--zarr", type=Path, required=True, help="Path to processed .zarr store."
+    )
+    parser.add_argument(
+        "--extra-zarr",
+        type=Path,
+        nargs="*",
+        default=[],
+        help="Additional .zarr stores to merge.",
     )
     parser.add_argument(
         "--policy",
@@ -104,6 +122,96 @@ def main() -> None:
         "If omitted, uses the action_key attribute from the zarr metadata.",
     )
     parser.add_argument("--seed", type=int, default=42, help="Random seed.")
+    parser.add_argument(
+        "--lr",
+        type=float,
+        default=LR,
+        help=f"Learning rate (default: {LR}).",
+    )
+    parser.add_argument(
+        "--epochs",
+        type=int,
+        default=EPOCHS,
+        help=f"Number of epochs (default: {EPOCHS}).",
+    )
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=BATCH_SIZE,
+        help=f"Batch size (default: {BATCH_SIZE}).",
+    )
+    parser.add_argument(
+        "--optimizer",
+        choices=["adam", "adamw"],
+        default="adamw",
+        help="Optimizer: adam or adamw (default: adamw).",
+    )
+    parser.add_argument(
+        "--weight-decay",
+        type=float,
+        default=1e-4,
+        help="Weight decay (default: 1e-4).",
+    )
+    parser.add_argument(
+        "--scheduler",
+        choices=["cosine", "cosine_restarts", "constant", "step", "plateau"],
+        default="cosine",
+        help="LR scheduler: cosine, cosine_restarts, constant, step, plateau (default: cosine).",
+    )
+    parser.add_argument(
+        "--cosine-t0",
+        type=int,
+        default=10,
+        help="Cycle length for cosine_restarts scheduler (default: 10).",
+    )
+    # ── model architecture args ──────────────────────────────────────
+    parser.add_argument(
+        "--d-model",
+        type=int,
+        default=256,
+        help="Hidden layer width (default: 256).",
+    )
+    parser.add_argument(
+        "--depth",
+        type=int,
+        default=3,
+        help="Number of hidden layers (default: 3).",
+    )
+    parser.add_argument(
+        "--dropout",
+        type=float,
+        default=0.1,
+        help="Dropout probability (default: 0.1).",
+    )
+    parser.add_argument(
+        "--activation",
+        choices=["relu", "gelu", "tanh", "silu"],
+        default="gelu",
+        help="Activation function (default: gelu).",
+    )
+    parser.add_argument(
+        "--layer-norm",
+        action="store_true",
+        help="Enable LayerNorm in the MLP (disabled by default).",
+    )
+    parser.add_argument(
+        "--gripper-weight",
+        type=float,
+        default=2.0,
+        help="Loss weight for gripper action dimension (default: 2.0).",
+    )
+    parser.add_argument(
+        "--eval-every",
+        type=int,
+        default=50,
+        help="Run sim eval every N epochs (0 = disabled). Runs eval.py as subprocess.",
+    )
+    parser.add_argument(
+        "--eval-episodes",
+        type=int,
+        default=50,
+        help="Number of episodes for periodic sim eval (default: 50).",
+    )
     args = parser.parse_args()
 
     torch.manual_seed(args.seed)
@@ -148,10 +256,10 @@ def main() -> None:
     )
 
     train_loader = DataLoader(
-        train_ds, batch_size=BATCH_SIZE, shuffle=True, num_workers=0
+        train_ds, batch_size=args.batch_size, shuffle=True, num_workers=0
     )
     val_loader = DataLoader(
-        val_ds, batch_size=BATCH_SIZE, shuffle=False, num_workers=0
+        val_ds, batch_size=args.batch_size, shuffle=False, num_workers=0
     )
 
     # ── model ─────────────────────────────────────────────────────────
@@ -159,15 +267,56 @@ def main() -> None:
         args.policy,
         state_dim=states.shape[1],
         action_dim=actions.shape[1],
-        # TODO: build with your desired specifications
+        chunk_size=args.chunk_size,
+        d_model=args.d_model,
+        depth=args.depth,
+        dropout=args.dropout,
+        activation=args.activation,
+        use_layer_norm=args.layer_norm,
+        gripper_weight=args.gripper_weight,
     ).to(device)
 
     n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"Model parameters: {n_params:,}")
 
-    # TODO: implement an optimizer and scheduler
-    # optimizer =
-    # scheduler =
+    # ── optimizer ──────────────────────────────────────────────────────
+    if args.optimizer == "adam":
+        optimizer = torch.optim.Adam(
+            model.parameters(), lr=args.lr, weight_decay=args.weight_decay
+        )
+    elif args.optimizer == "adamw":
+        optimizer = torch.optim.AdamW(
+            model.parameters(), lr=args.lr, weight_decay=args.weight_decay
+        )
+    else:
+        raise ValueError(f"Unsupported optimizer: {args.optimizer}")
+
+    # ── scheduler ─────────────────────────────────────────────────────
+    if args.scheduler == "cosine":
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, T_max=args.epochs
+        )
+    elif args.scheduler == "cosine_restarts":
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
+            optimizer, T_0=args.cosine_t0
+        )
+    elif args.scheduler == "constant":
+        scheduler = torch.optim.lr_scheduler.ConstantLR(
+            optimizer, factor=1.0, total_iters=0
+        )
+    elif args.scheduler == "step":
+        scheduler = torch.optim.lr_scheduler.StepLR(
+            optimizer, step_size=args.epochs // 3, gamma=0.1
+        )
+    elif args.scheduler == "plateau":
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer, mode="min", factor=0.5, patience=10
+        )
+    else:
+        raise ValueError(f"Unsupported scheduler: {args.scheduler}")
+
+    print(f"Optimizer: {args.optimizer} (lr={args.lr}, wd={args.weight_decay})")
+    print(f"Scheduler: {args.scheduler}")
 
     # ── training loop ─────────────────────────────────────────────────
     best_val = float("inf")
@@ -197,10 +346,13 @@ def main() -> None:
     save_path = ckpt_dir / save_name
     save_path.parent.mkdir(parents=True, exist_ok=True)
 
-    for epoch in range(1, EPOCHS + 1):
+    for epoch in range(1, args.epochs + 1):
         train_loss = train_one_epoch(model, train_loader, optimizer, device)
         val_loss = evaluate(model, val_loader, device)
-        scheduler.step()
+        if args.scheduler == "plateau":
+            scheduler.step(val_loss)
+        else:
+            scheduler.step()
 
         tag = ""
         if val_loss < best_val:
@@ -222,6 +374,11 @@ def main() -> None:
                     "action_keys": args.action_keys,
                     "state_dim": int(states.shape[1]),
                     "action_dim": int(actions.shape[1]),
+                    "d_model": args.d_model,
+                    "depth": args.depth,
+                    "dropout": args.dropout,
+                    "activation": args.activation,
+                    "use_layer_norm": args.layer_norm,
                     "val_loss": val_loss,
                 },
                 save_path,
@@ -229,7 +386,7 @@ def main() -> None:
             tag = " ✓ saved"
 
         print(
-            f"Epoch {epoch:3d}/{EPOCHS} | "
+            f"Epoch {epoch:3d}/{args.epochs} | "
             f"train {train_loss:.6f} | val {val_loss:.6f}{tag}"
         )
 

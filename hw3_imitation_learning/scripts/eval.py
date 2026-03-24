@@ -50,6 +50,7 @@ def run_episode(
     total: int,
     headless: bool,
     multicube: bool,
+    speed: float = 1.0,
 ) -> tuple[bool, bool, str | None]:
     """Run one evaluation episode.
 
@@ -80,6 +81,19 @@ def run_episode(
         wrong_in_bin = check_wrong_cube_in_bin(env) if multicube else None
 
         if success:
+            if not headless:
+                for _ in range(20):
+                    if not action_queue:
+                        chunk = infer_action_chunk(model=model, normalizer=normalizer, obs=obs, state_keys=state_keys, device=device)
+                        action_queue.extend(chunk)
+                    action = action_queue.pop(0)
+                    apply_action(env, action, action_keys)
+                    obs = env.step()
+                    img = compose_views(env)
+                    cv2.putText(img, "SUCCESS", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+                    cv2.imshow("SO100 Multicube Eval" if multicube else "SO100 Eval", img)
+                    cv2.waitKey(1)
+                    time.sleep(env.dt_ctrl / speed)
             return True, False, wrong_in_bin
 
         if check_cube_out_of_bounds(env):
@@ -148,7 +162,7 @@ def run_episode(
                 if k2 == ord(" ") or k2 == 27:
                     break
 
-        time.sleep(env.dt_ctrl)
+        time.sleep(env.dt_ctrl / speed)
 
     return False, False, check_wrong_cube_in_bin(env) if multicube else None
 
@@ -166,6 +180,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--num-episodes", type=int, default=10, help="Number of evaluation episodes (default: 10).")
     parser.add_argument("--max-steps", type=int, default=800, help="Maximum steps per episode (default: 800).")
     parser.add_argument("--headless", action="store_true", help="Run without rendering.")
+    parser.add_argument("--speed", type=float, default=1.0, help="Playback speed multiplier (default: 1.0).")
     parser.add_argument("--seed", type=int, default=None, help="Random seed for reproducible cube spawns.")
 
     # single-cube args
@@ -245,6 +260,7 @@ def main() -> None:
                 total=ep - 1,
                 headless=args.headless,
                 multicube=args.multicube,
+                speed=args.speed,
             )
             if aborted:
                 print("Aborted by user.")
