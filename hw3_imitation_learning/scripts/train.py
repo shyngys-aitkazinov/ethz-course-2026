@@ -108,18 +108,18 @@ def main() -> None:
     parser.add_argument(
         "--state-keys",
         nargs="+",
-        default=None,
+        default=["state_ee_xyz", "state_gripper", "state_cube", "state_obstacle"],
         help='State array key specs to concatenate, e.g. state_ee_xyz state_gripper "state_cube[:3]". '
         "Supports column slicing with [:N], [M:], [M:N]. "
-        "If omitted, uses the state_key attribute from the zarr metadata.",
+        "(default: state_ee_xyz state_gripper state_cube state_obstacle).",
     )
     parser.add_argument(
         "--action-keys",
         nargs="+",
-        default=None,
+        default=["action_ee_xyz", "action_gripper"],
         help="Action array key specs to concatenate, e.g. action_ee_xyz action_gripper. "
         "Supports column slicing with [:N], [M:], [M:N]. "
-        "If omitted, uses the action_key attribute from the zarr metadata.",
+        "(default: action_ee_xyz action_gripper).",
     )
     parser.add_argument("--seed", type=int, default=42, help="Random seed.")
     parser.add_argument(

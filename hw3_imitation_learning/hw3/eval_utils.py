@@ -123,6 +123,8 @@ def load_checkpoint(
     dropout = float(ckpt.get("dropout", 0.1))
     activation = str(ckpt.get("activation", "gelu"))
     use_layer_norm = bool(ckpt.get("use_layer_norm", False))
+    use_film = bool(ckpt.get("use_film", False))
+    goal_dim = int(ckpt.get("goal_dim", 3))
     policy_type = str(ckpt.get("policy_type", "obstacle"))
     model = build_policy(
         policy_type,
@@ -134,6 +136,8 @@ def load_checkpoint(
         dropout=dropout,
         activation=activation,
         use_layer_norm=use_layer_norm,
+        use_film=use_film,
+        goal_dim=goal_dim,
     )
     model.load_state_dict(ckpt["model_state_dict"])
     model.to(device)
