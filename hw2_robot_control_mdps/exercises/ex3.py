@@ -68,7 +68,7 @@ def process_action(action: np.ndarray, jnt_range: np.ndarray) -> np.ndarray:
     return mid + action * half
 
 
-def compute_reward(ee_tracking_error: float) -> float:
+def compute_reward(ee_tracking_error: float, action: np.ndarray | None = None) -> float:
     """
     TODO:
     Calculate the reward based on the distance (error) to the target.
@@ -90,7 +90,10 @@ def compute_reward(ee_tracking_error: float) -> float:
     """
     dense_reward = np.exp(-2 * ee_tracking_error)
     sparse_reward = 1.0 if ee_tracking_error < 0.005 else 0.0
-    return dense_reward + sparse_reward
+    reward = dense_reward + sparse_reward
+    if action is not None:
+        reward += -0.005 * np.sum(action**2)
+    return reward
 
 
 def get_obs(
@@ -100,6 +103,7 @@ def get_obs(
     base_pos_w: np.ndarray,
     base_rot_w: np.ndarray,
     target_pos_w: np.ndarray,
+    qvel: np.ndarray | None = None,
 ) -> np.ndarray:
     """
     TODO: Extract the observation vector from the environment robot state variables.
@@ -140,4 +144,6 @@ def get_obs(
     offset_w = target_pos_w - base_pos_w
     target_pos_base = base_rot_w.T @ offset_w
 
+    if qvel is not None:
+        return np.concatenate([qpos, qvel, ee_pos_base, ee_quat_base, target_pos_base])
     return np.concatenate([qpos, ee_pos_base, ee_quat_base, target_pos_base])

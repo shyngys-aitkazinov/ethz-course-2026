@@ -11,8 +11,9 @@ class SO100TrackEnv(gym.Env):
     xml_path: Path
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 30}
 
-    def __init__(self, xml_path: Path, render_mode=None):
+    def __init__(self, xml_path: Path, render_mode=None, bonus=False):
         self.xml_path = xml_path
+        self.bonus = bonus
         self.model = mujoco.MjModel.from_xml_path(str(self.xml_path))
         self.data = mujoco.MjData(self.model)
 
@@ -57,7 +58,9 @@ class SO100TrackEnv(gym.Env):
     def _process_action(self, action):
         return process_action(action, self.model.jnt_range)
 
-    def compute_reward(self):
+    def compute_reward(self, action=None):
+        if self.bonus:
+            return compute_reward(self.ee_tracking_error, action=action)
         return compute_reward(self.ee_tracking_error)
 
     def step(self, action):
@@ -65,7 +68,7 @@ class SO100TrackEnv(gym.Env):
         for _ in range(self.ctrl_decimation): 
             mujoco.mj_step(self.model, self.data)
         self.ee_tracking_error = np.linalg.norm(self.data.site("ee_site").xpos - self.data.mocap_pos[0])
-        reward = self.compute_reward()
+        reward = self.compute_reward(action=action) if self.bonus else self.compute_reward()
 
         terminated = False
         truncated = False
@@ -87,7 +90,10 @@ class SO100TrackEnv(gym.Env):
         ee_rot_w = self.data.site("ee_site").xmat.reshape(3, 3)
         base_pos_w = self.data.body("Base").xpos.copy()
         base_rot_w = self.data.body("Base").xmat.reshape(3, 3)
-        target_pos_w = self.data.mocap_pos[0].copy()        
+        target_pos_w = self.data.mocap_pos[0].copy()
+        if self.bonus:
+            qvel = self.data.qvel.flat[:].copy()
+            return get_obs(qpos, ee_pos_w, ee_rot_w, base_pos_w, base_rot_w, target_pos_w, qvel=qvel)
         return get_obs(qpos, ee_pos_w, ee_rot_w, base_pos_w, base_rot_w, target_pos_w)
 
     def render(self):

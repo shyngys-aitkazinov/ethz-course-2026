@@ -13,15 +13,17 @@ def parse_args():
                         help="Number of parallel environments; set 1 for single process")
     parser.add_argument("--max_iterations", type=int, default=500,
                         help="Number of PPO update iterations")
-    parser.add_argument("--save_checkpt_freq", type=int, default=50,
+    parser.add_argument("--save_checkpt_freq", type=int, default=100,
                         help="Checkpoint every N update iterations")
     parser.add_argument("--device", type=str, default="cpu",
                         help="Torch device (cpu or cuda)")
+    parser.add_argument("--bonus", action="store_true",
+                        help="Enable bonus features (qvel obs, action penalty)")
     return parser.parse_args()
 
-def make_env():
+def make_env(bonus=False):
     def _init():
-        env = SO100TrackEnv(xml_path=XML_PATH, render_mode=None)
+        env = SO100TrackEnv(xml_path=XML_PATH, render_mode=None, bonus=bonus)
         env = Monitor(env, info_keywords=("ee_tracking_error",))
         return env
     return _init
@@ -32,7 +34,7 @@ if __name__ == "__main__":
     if args.num_envs > 1:
         # Wrap in a vectorized environment for parallel simulation
         start_method = "spawn" if sys.platform == "win32" else "forkserver"
-        envs = SubprocVecEnv([make_env() for _ in range(args.num_envs)], start_method=start_method)
+        envs = SubprocVecEnv([make_env(bonus=args.bonus) for _ in range(args.num_envs)], start_method=start_method)
         envs = VecMonitor(envs)
         print(f"Successfully launched {args.num_envs} environments!")
         model = PPO(
@@ -47,7 +49,7 @@ if __name__ == "__main__":
         )
     else:
         # Create a single environment for debug with rendering
-        env = SO100TrackEnv(xml_path=XML_PATH, render_mode="human")
+        env = SO100TrackEnv(xml_path=XML_PATH, render_mode="human", bonus=args.bonus)
         model = PPO(
             "MlpPolicy",
             env,

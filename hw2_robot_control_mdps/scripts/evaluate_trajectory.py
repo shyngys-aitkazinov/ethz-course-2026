@@ -19,6 +19,8 @@ def parse_args():
                         help="checkpoint id")
     parser.add_argument("--device", type=str, default="cpu",
                         help="Torch device (cpu or cuda)")
+    parser.add_argument("--bonus", action="store_true",
+                        help="Enable bonus features (qvel obs, action penalty)")
     return parser.parse_args()
      
 def policy_callback(model, data):
@@ -48,7 +50,7 @@ if __name__ == "__main__":
     args = parse_args()
     policy_path = EXP_DIR / f"so100_tracking_{args.load_run}" / f"model_{args.checkpoint}.zip" 
     
-    env = SO100TrackEnv(xml_path=XML_PATH, render_mode=None)
+    env = SO100TrackEnv(xml_path=XML_PATH, render_mode=None, bonus=args.bonus)
     play_episode_length_s = 5
     play_episode_length = int(play_episode_length_s / env.ctrl_timestep)
 
