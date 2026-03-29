@@ -1,0 +1,182 @@
+
+Run: ffn | params: 105,098
+[ffn] epoch 1/5 | test acc: 0.8303
+[ffn] epoch 2/5 | test acc: 0.8883
+[ffn] epoch 3/5 | test acc: 0.9236
+[ffn] epoch 4/5 | test acc: 0.9366
+[ffn] epoch 5/5 | test acc: 0.9418
+
+Run: glu | params: 105,010
+[glu] epoch 1/5 | test acc: 0.8794
+[glu] epoch 2/5 | test acc: 0.9274
+[glu] epoch 3/5 | test acc: 0.9331
+[glu] epoch 4/5 | test acc: 0.9499
+[glu] epoch 5/5 | test acc: 0.9541
+
+Run: geglu | params: 105,010
+[geglu] epoch 1/5 | test acc: 0.8812
+[geglu] epoch 2/5 | test acc: 0.9287
+[geglu] epoch 3/5 | test acc: 0.9436
+[geglu] epoch 4/5 | test acc: 0.9527
+[geglu] epoch 5/5 | test acc: 0.9561
+
+Run: swiglu | params: 105,010
+[swiglu] epoch 1/5 | test acc: 0.8731
+[swiglu] epoch 2/5 | test acc: 0.9291
+[swiglu] epoch 3/5 | test acc: 0.9430
+[swiglu] epoch 4/5 | test acc: 0.9475
+[swiglu] epoch 5/5 | test acc: 0.9562
+
+Run: reglu | params: 105,010
+[reglu] epoch 1/5 | test acc: 0.8766
+[reglu] epoch 2/5 | test acc: 0.9213
+[reglu] epoch 3/5 | test acc: 0.9444
+[reglu] epoch 4/5 | test acc: 0.9545
+[reglu] epoch 5/5 | test acc: 0.9566
+
+============================================================
+Variant        Params   Best Acc  Final Acc
+------------------------------------------------------------
+ffn           105,098     0.9418     0.9418
+glu           105,010     0.9541     0.9541
+geglu         105,010     0.9561     0.9561
+swiglu        105,010     0.9562     0.9562
+reglu         105,010     0.9566     0.9566
+
+
+
+Run: ffn | params: 105,098
+[ffn] epoch 1/5 | test acc: 0.8651
+[ffn] epoch 2/5 | test acc: 0.9146
+[ffn] epoch 3/5 | test acc: 0.9342
+[ffn] epoch 4/5 | test acc: 0.9411
+[ffn] epoch 5/5 | test acc: 0.9508
+
+Run: glu | params: 105,010
+[glu] epoch 1/5 | test acc: 0.8543
+[glu] epoch 2/5 | test acc: 0.9110
+[glu] epoch 3/5 | test acc: 0.9308
+[glu] epoch 4/5 | test acc: 0.9436
+[glu] epoch 5/5 | test acc: 0.9473
+
+Run: geglu | params: 105,010
+[geglu] epoch 1/5 | test acc: 0.8648
+[geglu] epoch 2/5 | test acc: 0.9252
+[geglu] epoch 3/5 | test acc: 0.9398
+[geglu] epoch 4/5 | test acc: 0.9548
+[geglu] epoch 5/5 | test acc: 0.9589
+
+Run: swiglu | params: 105,010
+[swiglu] epoch 1/5 | test acc: 0.8600
+[swiglu] epoch 2/5 | test acc: 0.9260
+[swiglu] epoch 3/5 | test acc: 0.9393
+[swiglu] epoch 4/5 | test acc: 0.9519
+[swiglu] epoch 5/5 | test acc: 0.9533
+
+Run: reglu | params: 105,010
+[reglu] epoch 1/5 | test acc: 0.8655
+[reglu] epoch 2/5 | test acc: 0.9282
+[reglu] epoch 3/5 | test acc: 0.9461
+[reglu] epoch 4/5 | test acc: 0.9591
+[reglu] epoch 5/5 | test acc: 0.9596
+
+============================================================
+Variant        Params   Best Acc  Final Acc
+------------------------------------------------------------
+ffn           105,098     0.9508     0.9508
+glu           105,010     0.9473     0.9473
+geglu         105,010     0.9589     0.9589
+swiglu        105,010     0.9533     0.9533
+reglu         105,010     0.9596     0.9596
+
+
+Run: ffn | params: 105,098
+[ffn] epoch 1/5 | test acc: 0.8427
+[ffn] epoch 2/5 | test acc: 0.9088
+[ffn] epoch 3/5 | test acc: 0.9320
+[ffn] epoch 4/5 | test acc: 0.9335
+[ffn] epoch 5/5 | test acc: 0.9457
+
+Run: glu | params: 105,010
+[glu] epoch 1/5 | test acc: 0.8506
+[glu] epoch 2/5 | test acc: 0.9088
+[glu] epoch 3/5 | test acc: 0.9299
+[glu] epoch 4/5 | test acc: 0.9348
+[glu] epoch 5/5 | test acc: 0.9436
+
+Run: geglu | params: 105,010
+[geglu] epoch 1/5 | test acc: 0.8502
+[geglu] epoch 2/5 | test acc: 0.9095
+[geglu] epoch 3/5 | test acc: 0.9338
+[geglu] epoch 4/5 | test acc: 0.9430
+[geglu] epoch 5/5 | test acc: 0.9517
+
+Run: swiglu | params: 105,010
+[swiglu] epoch 1/5 | test acc: 0.8530
+[swiglu] epoch 2/5 | test acc: 0.9081
+[swiglu] epoch 3/5 | test acc: 0.9337
+[swiglu] epoch 4/5 | test acc: 0.9388
+[swiglu] epoch 5/5 | test acc: 0.9507
+
+Run: reglu | params: 105,010
+[reglu] epoch 1/5 | test acc: 0.8413
+[reglu] epoch 2/5 | test acc: 0.9077
+[reglu] epoch 3/5 | test acc: 0.9305
+[reglu] epoch 4/5 | test acc: 0.9477
+[reglu] epoch 5/5 | test acc: 0.9486
+
+============================================================
+Variant        Params   Best Acc  Final Acc
+------------------------------------------------------------
+ffn           105,098     0.9457     0.9457
+glu           105,010     0.9436     0.9436
+geglu         105,010     0.9517     0.9517
+swiglu        105,010     0.9507     0.9507
+reglu         105,010     0.9486     0.9486
+
+
+
+Run: ffn | params: 105,098
+[ffn] epoch 1/5 | test acc: 0.8358
+[ffn] epoch 2/5 | test acc: 0.9155
+[ffn] epoch 3/5 | test acc: 0.9249
+[ffn] epoch 4/5 | test acc: 0.9384
+[ffn] epoch 5/5 | test acc: 0.9440
+
+Run: glu | params: 105,010
+[glu] epoch 1/5 | test acc: 0.8695
+[glu] epoch 2/5 | test acc: 0.9207
+[glu] epoch 3/5 | test acc: 0.9346
+[glu] epoch 4/5 | test acc: 0.9477
+[glu] epoch 5/5 | test acc: 0.9506
+
+Run: geglu | params: 105,010
+[geglu] epoch 1/5 | test acc: 0.8698
+[geglu] epoch 2/5 | test acc: 0.9191
+[geglu] epoch 3/5 | test acc: 0.9484
+[geglu] epoch 4/5 | test acc: 0.9560
+[geglu] epoch 5/5 | test acc: 0.9607
+
+Run: swiglu | params: 105,010
+[swiglu] epoch 1/5 | test acc: 0.8706
+[swiglu] epoch 2/5 | test acc: 0.9241
+[swiglu] epoch 3/5 | test acc: 0.9454
+[swiglu] epoch 4/5 | test acc: 0.9531
+[swiglu] epoch 5/5 | test acc: 0.9595
+
+Run: reglu | params: 105,010
+[reglu] epoch 1/5 | test acc: 0.8721
+[reglu] epoch 2/5 | test acc: 0.9144
+[reglu] epoch 3/5 | test acc: 0.9443
+[reglu] epoch 4/5 | test acc: 0.9544
+[reglu] epoch 5/5 | test acc: 0.9595
+
+============================================================
+Variant        Params   Best Acc  Final Acc
+------------------------------------------------------------
+ffn           105,098     0.9440     0.9440
+glu           105,010     0.9506     0.9506
+geglu         105,010     0.9607     0.9607
+swiglu        105,010     0.9595     0.9595
+reglu         105,010     0.9595     0.9595
+
