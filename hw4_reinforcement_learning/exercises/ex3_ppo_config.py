@@ -1,10 +1,10 @@
 PPO_PARAMETERS = {
     "seed": 42,
     "hidden_sizes": [256, 128, 128],
-    "total_iterations": 500, # total number of training iterations
-    "n_steps": 2048, # number of env steps before each update
-    "mini_batch_size": 1024, # batch size for PPO update
-    "n_epochs": 10, # number of epochs per PPO update
+    "total_iterations": 500,  # total number of training iterations
+    "n_steps": 2048,  # number of env steps before each update
+    "mini_batch_size": 1024,  # batch size for PPO update
+    "n_epochs": 10,  # number of epochs per PPO update
     "gamma": 0.99,
     "gae_lambda": 0.95,
     "surrogate_loss_coeff": 1.0,
